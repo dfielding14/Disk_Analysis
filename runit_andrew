@@ -1,0 +1,21 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=misalignment_myers_data
+#
+# Partition
+#SBATCH --partition=henyey
+#
+# QoS:
+#SBATCH --qos=small
+#
+# Processors:
+#SBATCH --nodes=6
+#SBATCH --ntasks-per-node=4
+#
+# Wall Clock Time:
+#SBATCH --time=01:00:00
+#
+
+## Run Command
+
+mpirun -np 24 python analyzer.py --parallel
