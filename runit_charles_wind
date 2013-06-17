@@ -1,6 +1,6 @@
 #!/bin/bash
 # Job name:
-#SBATCH --job-name=misalignment_myers_data
+#SBATCH --job-name=ch_wind_misalignment
 #
 # Partition
 #SBATCH --partition=henyey
@@ -15,6 +15,11 @@
 # Wall Clock Time:
 #SBATCH --time=24:00:00
 #
+# Mail type:
+#SBATCH --mail-type=all
+#
+# Mail user:
+#SBATCH --mail-user=dfielding@berkeley.edu
 
 ## Run Command
 mv /clusterfs/henyey/dfielding/charles/charles/wind/inputs_m /clusterfs/henyey/dfielding/charles/charles/wind/inputs

@@ -15,6 +15,11 @@
 # Wall Clock Time:
 #SBATCH --time=01:00:00
 #
+# Mail type:
+#SBATCH --mail-type=all
+#
+# Mail user:
+#SBATCH --mail-user=dfielding@berkeley.edu
 
 ## Run Command
 
