@@ -147,17 +147,17 @@ day        = 8.64e4                         # seconds
 year       = 365.2425 * day                 # seconds
 M_sun 	   = 1.9891e33        				# gm
 
-#########################################################################
-num_procs = 3 # make sure to change this when using different computers # TEST
-#num_procs = 12 # make sure to change this when using different computers 
-#########################################################################
+##########################################################################
+#num_procs = 3 # make sure to change this when using different computers # ~*~*~TEST~*~*~
+num_procs = 12 # make sure to change this when using different computers #
+##########################################################################
 
 t0=time.time()
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind_test/pltm*") #charles w/ wind test
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind_test/pltm*") #charles w/ wind test
 nfiles = len(ts)
 
-nradii = 20
+nradii = 48
 min_radii = 35.
 max_radii = 200.
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
