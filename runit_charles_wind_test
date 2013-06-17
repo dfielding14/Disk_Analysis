@@ -10,7 +10,7 @@
 #
 # Processors:
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=2
+#SBATCH --ntasks-per-node=3
 #
 # Wall Clock Time:
 #SBATCH --time=01:00:00
@@ -24,6 +24,6 @@
 ## Run Command
 mv /clusterfs/henyey/dfielding/charles/charles/wind_test/inputs_m /clusterfs/henyey/dfielding/charles/charles/wind_test/inputs
 
-mpirun -np 2 python analyzer_charles_wind.py --parallel
+mpirun -np 3 python analyzer_charles_wind.py --parallel
 
 mv /clusterfs/henyey/dfielding/charles/charles/wind_test/inputs /clusterfs/henyey/dfielding/charles/charles/wind_test/inputs_m
