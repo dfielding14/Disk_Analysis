@@ -140,22 +140,19 @@ def CAN_OPENER(directory):
 #==============================================================================#
 
 from yt.pmods import *
-#from physical_constants import *
-day        = 8.64e4                         # seconds
-year       = 365.2425 * day                 # seconds
-M_sun = 1.9891e33             # gm
 import glob
 import fnmatch
 import matplotlib.pyplot as plt
+day        = 8.64e4                         # seconds
+year       = 365.2425 * day                 # seconds
+M_sun 	   = 1.9891e33        				# gm
 
-
+#########################################################################
+num_procs = 12 # make sure to change this when using different computers #
+#########################################################################
 
 t0=time.time()
-#ts = TimeSeriesData.from_filenames("./data/myers+13_final/data*.hdf5")
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/andrew/data*.hdf5")    #andrew myers run 
 ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltmnw*") #charles no wind
-
 nfiles = len(ts)
 
 nradii = 48
@@ -176,31 +173,26 @@ for sto, pf in ts.piter(storage = my_storage):
 	for i in xrange(int(nstars)):
 		print "I am processor "+str( my_rank )+" and I am working on " + str(i+1)+' out of '+str(nstars)
 		angle_profiles[i], mass_profiles[i] = DISK_HUNTER(pf,positions[i], L_star[i], radii)
+	print 'processor '+str(my_rank)+' is done'
 	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
 t1=time.time()
 
 
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+if my_rank == 0:
 	print 'the time it took to gather and clean all stars, and hunt their disks was:',t1-t0, 'seconds'
+
 max_nstar = 0
 uniq_indices = np.array([])
 for i in range(nfiles):
-	# print 'file '+str(i)+' has '+ str(my_storage[i][0]) + ' star(s)'
-	# print 'which have the following indices'
-	# for j in range(int(my_storage[i][0])):
-	# 	print my_storage[i][1][j]
 	uniq_indices = np.append(uniq_indices, my_storage[i][1])
-	# print 'and have the following masses', my_storage[i][2]/M_sun
-	# print 'and have the following positions', my_storage[i][3]
-	# print 'and have the following angular momenta', my_storage[i][4]
 	if my_storage[i][0] > max_nstar:
 		max_nstar = my_storage[i][0]
 uniq_indices = np.unique(uniq_indices)
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+
+if my_rank == 0:
 	print 'most number of stars in an output: ', max_nstar
 	print 'the unique indices are:', uniq_indices
 t2 = time.time()
-
 
 stars = {}	
 for i in xrange(len(uniq_indices)):
@@ -230,15 +222,9 @@ for i in xrange(len(uniq_indices)):
 	stars[i] = (ntimes, index, mass_hist, position_hist, L_star_hist,angle_profile_hist,mass_profile_hist,age)
 t3 = time.time()
 
-
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 1:
+if my_rank == 1:
 	print 'the time it took arrange the stars in their dictionary was:',t3-t2, 'seconds'
 
-#########################################################################
-num_procs = 12 # make sure to change this when using different computers #
-#########################################################################
-
-my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 for i in range(0+my_rank,len(stars),num_procs):
 	ntimes = int(stars[i][0])
 	star_masses=np.zeros(nradii)
@@ -252,33 +238,3 @@ for i in range(0+my_rank,len(stars),num_procs):
 		star_ages[j] = stars[i][7][j] / year
 	filename='star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
 	np.savetxt(filename,np.c_[star_ages, star_masses, np.transpose(misalignment_angle_profiles),np.transpose(mass_profiles),radii/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years), column 1: masses(g), column 2-2+ntimes: misalignment profiles, column 3+ntimes - 3+2ntimes: mass profiles, column 4+2ntimes: radii(AU)') 
-
-
-
-# my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
-# for i in range(0+my_rank,len(stars),num_procs):
-# 	ntimes = int(stars[i][0])
-# 	for j in range(ntimes):
-# 		misalignment_angle_profile = stars[i][5][j]
-# 		mass_profile = stars[i][6][j]
-# 		print max(mass_profile), stars[i][3]
-# 		age = stars[i][7][j] / year
-# 		plt.plot(radii/1.5e13, mass_profile/ M_sun, label = str(age) + ' years')
-# 	plt.ylabel(r'$M_{enc}/M_\odot$')
-# 	plt.legend(loc='upper left')
-# 	plt.xlabel(r'Radius (AU)')
-# 	plt.savefig('star_'+str(stars[i][1])+'_mass_profile.png')
-
-# 	# for j in range(int(stars[i][0])):
-# 	# 	print j, str(ytcfg.getint("yt", "__topcomm_parallel_rank"))
-
-
-
-
-
-
-
-
-
-
-
