@@ -148,11 +148,13 @@ year       = 365.2425 * day                 # seconds
 M_sun 	   = 1.9891e33        				# gm
 
 #########################################################################
-num_procs = 2 # make sure to change this when using different computers #
+num_procs = 2 # make sure to change this when using different computers # TEST
+#num_procs = 12 # make sure to change this when using different computers 
 #########################################################################
 
 t0=time.time()
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind_test/pltm*") #charles w/ wind test
 nfiles = len(ts)
 
 nradii = 48
