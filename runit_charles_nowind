@@ -1,0 +1,29 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=ch_wind_misalignment
+#
+# Partition
+#SBATCH --partition=henyey
+#
+# QoS:
+#SBATCH --qos=small
+#
+# Processors:
+#SBATCH --nodes=3
+#SBATCH --ntasks-per-node=4
+#
+# Wall Clock Time:
+#SBATCH --time=2:00:00
+#
+# Mail type:
+#SBATCH --mail-type=all
+#
+# Mail user:
+#SBATCH --mail-user=dfielding@berkeley.edu
+
+## Run Command
+mv /clusterfs/henyey/dfielding/charles/charles/nowind/inputs_mnw /clusterfs/henyey/dfielding/charles/charles/nowind/inputs
+
+mpirun -np 12 python analyzer_charles_nowind.py --parallel
+
+mv /clusterfs/henyey/dfielding/charles/charles/nowind/inputs /clusterfs/henyey/dfielding/charles/charles/nowind/inputs_mnw
