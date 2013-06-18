@@ -130,9 +130,11 @@ def FILE_COUNTER(directory):
 #==============================================================================#
 
 from yt.pmods import *
-from physical_constants import *
 import glob
 import fnmatch
+day        = 8.64e4                         # seconds
+year       = 365.2425 * day                 # seconds
+M_sun 	   = 1.9891e33        				# gm
 
 # This is for use on the NERSC machines
 # import matplotlib
@@ -144,10 +146,10 @@ import matplotlib.pyplot as plt
 #rc('font', family='serif')
 
 #########################################################################
-num_procs = 2 # make sure to change this when using different computers #
+num_procs = 24 # make sure to change this when using different computers #
 #########################################################################
 
-nfiles = FILE_COUNTER('./data/myers+13_final/')
+nfiles = FILE_COUNTER("/clusterfs/henyey/dfielding/andrew/")
 if num_procs < 2.0*nfiles:
 	n_parallel = 1
 if num_procs >= 2.0*nfiles:
@@ -156,58 +158,55 @@ if num_procs >= 2.0*nfiles:
 print 'n_parallel = ' + str(n_parallel)
 
 t0=time.time()
-ts = TimeSeriesData.from_filenames("./data/myers+13_final/data*.hdf5", \
-	parallel = n_parallel)
-#ts = TimeSeriesData.from_filenames("./data*.hdf5")
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/andrew/data.*.hdf5", parallel = n_parallel)
 if len(ts) != nfiles:
 	print "UH OH the number of files do not match!"
 
 
 
-nradii = 20
+nradii = 40
 min_radii = 5.
-max_radii = 100.
+max_radii = 200.
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
 my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 
+
+if my_rank == 0:
+	print 'the number of files in the time series is ' + str(nfiles)
+
+
 my_storage = {}
 for sto, pf in ts.piter(storage = my_storage):
-	print 'I am processor '+str(my_rank)
-	print 'I am processor '+str(my_rank)+' and I am working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
+	print 'working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
 	data = pf.h.all_data()
 	nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
-	nstars, indices, masses, positions, L_star = STAR_CLEANER(2.05, 0., nstars, indices, masses, positions, L_star)
+	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.05, 0., nstars, indices, masses, positions, L_star)
 	angle_profiles = np.zeros((nstars,nradii))
 	mass_profiles  = np.zeros((nstars,nradii))
 	for i in xrange(int(nstars)):
 		print "I am processor "+str( my_rank )+" and I am working on " + str(i+1)+' out of '+str(nstars)
 		angle_profiles[i], mass_profiles[i] = DISK_HUNTER(pf,positions[i], L_star[i], radii)
+	print 'processor '+str(my_rank)+' is done'
 	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
 t1=time.time()
 
 
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+if my_rank == 0:
 	print 'the time it took to gather and clean all stars, and hunt their disks was:',t1-t0, 'seconds'
+
 max_nstar = 0
 uniq_indices = np.array([])
 for i in range(nfiles):
-	# print 'file '+str(i)+' has '+ str(my_storage[i][0]) + ' star(s)'
-	# print 'which have the following indices'
-	# for j in range(int(my_storage[i][0])):
-	# 	print my_storage[i][1][j]
 	uniq_indices = np.append(uniq_indices, my_storage[i][1])
-	# print 'and have the following masses', my_storage[i][2]/M_sun
-	# print 'and have the following positions', my_storage[i][3]
-	# print 'and have the following angular momenta', my_storage[i][4]
 	if my_storage[i][0] > max_nstar:
 		max_nstar = my_storage[i][0]
 uniq_indices = np.unique(uniq_indices)
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+
+if my_rank == 0:
 	print 'most number of stars in an output: ', max_nstar
 	print 'the unique indices are:', uniq_indices
 t2 = time.time()
-
 
 stars = {}	
 for i in xrange(len(uniq_indices)):
@@ -237,85 +236,174 @@ for i in xrange(len(uniq_indices)):
 	stars[i] = (ntimes, index, mass_hist, position_hist, L_star_hist,angle_profile_hist,mass_profile_hist,age)
 t3 = time.time()
 
-
-if ytcfg.getint("yt", "__topcomm_parallel_rank") == 1:
+if my_rank == 1:
 	print 'the time it took arrange the stars in their dictionary was:',t3-t2, 'seconds'
 
-
-
-my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 for i in range(0+my_rank,len(stars),num_procs):
 	ntimes = int(stars[i][0])
+	star_masses=np.zeros(nradii)
+	star_ages = np.zeros(nradii)
+	misalignment_angle_profiles = np.zeros((ntimes, nradii))
+	mass_profiles = np.zeros((ntimes, nradii))
 	for j in range(ntimes):
-		star_mass = stars[i][2][j]
-		misalignment_angle_profile = stars[i][5][j]
-		mass_profile = stars[i][6][j]
-		age = stars[i][7][j] / year
-		ax1 = plt.subplot(211)
-		plt.ylabel(r'$ \mathrm{misalignment \/ angle \/}(^{\circ})$')
-		ax2 = plt.subplot(212, sharex = ax1)
-		plt.ylabel(r'$M_{enc}/M_\odot$')
-		ax1.plot(radii/1.5e13, 180.0 * misalignment_angle_profile / np.pi, label = r'$\mathrm{time\/=\/}'+str(round(age,1)) + ' \mathrm{\/years}$')
-		ax2.plot(radii/1.5e13, mass_profile/ M_sun, label = r'$\mathrm{star\/mass} ='+str(round(star_mass/M_sun,4)) + '\/M_\odot$')
-	ax2.legend(loc='upper left')
-	ax1.legend()
-	ax1.set_ylim((0.,180.))
-	plt.xlabel(r'$\mathrm{Radius \/ (AU)}$')
-	plt.savefig('test_star_'+str(stars[i][1])+'_misalignment_mass_profile.png')
-plt.clf()
+		star_masses[j] = stars[i][2][j]
+		misalignment_angle_profiles[j] = stars[i][5][j]
+		mass_profiles[j] = stars[i][6][j]
+		star_ages[j] = stars[i][7][j] / year
+	filename='star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
+	np.savetxt(filename,np.c_[star_ages, star_masses, np.transpose(misalignment_angle_profiles),np.transpose(mass_profiles),radii/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years), column 1: masses(g), column 2-2+ntimes: misalignment profiles, column 3+ntimes - 3+2ntimes: mass profiles, column 4+2ntimes: radii(AU)') 
+
+
+
+
+
+
+# my_storage = {}
+# for sto, pf in ts.piter(storage = my_storage):
+# 	print 'I am processor '+str(my_rank)
+# 	print 'I am processor '+str(my_rank)+' and I am working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
+# 	data = pf.h.all_data()
+# 	nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
+# 	nstars, indices, masses, positions, L_star = STAR_CLEANER(2.05, 0., nstars, indices, masses, positions, L_star)
+# 	angle_profiles = np.zeros((nstars,nradii))
+# 	mass_profiles  = np.zeros((nstars,nradii))
+# 	for i in xrange(int(nstars)):
+# 		print "I am processor "+str( my_rank )+" and I am working on " + str(i+1)+' out of '+str(nstars)
+# 		angle_profiles[i], mass_profiles[i] = DISK_HUNTER(pf,positions[i], L_star[i], radii)
+# 	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
+# t1=time.time()
+
+
+# if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+# 	print 'the time it took to gather and clean all stars, and hunt their disks was:',t1-t0, 'seconds'
+# max_nstar = 0
+# uniq_indices = np.array([])
+# for i in range(nfiles):
+# 	# print 'file '+str(i)+' has '+ str(my_storage[i][0]) + ' star(s)'
+# 	# print 'which have the following indices'
+# 	# for j in range(int(my_storage[i][0])):
+# 	# 	print my_storage[i][1][j]
+# 	uniq_indices = np.append(uniq_indices, my_storage[i][1])
+# 	# print 'and have the following masses', my_storage[i][2]/M_sun
+# 	# print 'and have the following positions', my_storage[i][3]
+# 	# print 'and have the following angular momenta', my_storage[i][4]
+# 	if my_storage[i][0] > max_nstar:
+# 		max_nstar = my_storage[i][0]
+# uniq_indices = np.unique(uniq_indices)
+
+# if ytcfg.getint("yt", "__topcomm_parallel_rank") == 0:
+# 	print 'most number of stars in an output: ', max_nstar
+# 	print 'the unique indices are:', uniq_indices
+# t2 = time.time()
+
+
+# stars = {}	
+# for i in xrange(len(uniq_indices)):
+# 	ntimes=0
+# 	matches1 = np.array([])
+# 	matches2 = np.array([])
+# 	for j in xrange(nfiles):
+# 		for k in xrange(int(my_storage[j][0])):
+# 			if uniq_indices[i] == my_storage[j][1][k]:
+# 				ntimes += 1
+# 				matches1 = np.append(matches1, j)
+# 				matches2 = np.append(matches2, k)
+# 	index = uniq_indices[i]
+# 	mass_hist     = np.zeros(ntimes)
+# 	position_hist = np.zeros((ntimes, 3))
+# 	L_star_hist   = np.zeros((ntimes, 3))
+# 	angle_profile_hist = np.zeros((ntimes, nradii))
+# 	mass_profile_hist  = np.zeros((ntimes, nradii))
+# 	age = np.zeros(ntimes)
+# 	for k in xrange(ntimes):
+# 		mass_hist[k] 			= my_storage[matches1[k]][2][matches2[k]]
+# 		position_hist[k] 		= my_storage[matches1[k]][3][matches2[k]]
+# 		L_star_hist[k] 			= my_storage[matches1[k]][4][matches2[k]]
+# 		angle_profile_hist[k] 	= my_storage[matches1[k]][5][matches2[k]]
+# 		mass_profile_hist[k]  	= my_storage[matches1[k]][6][matches2[k]]
+# 		age[k] 					= my_storage[matches1[k]][7]
+# 	stars[i] = (ntimes, index, mass_hist, position_hist, L_star_hist,angle_profile_hist,mass_profile_hist,age)
+# t3 = time.time()
+
+
+# if ytcfg.getint("yt", "__topcomm_parallel_rank") == 1:
+# 	print 'the time it took arrange the stars in their dictionary was:',t3-t2, 'seconds'
+
 
 
 # my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 # for i in range(0+my_rank,len(stars),num_procs):
 # 	ntimes = int(stars[i][0])
 # 	for j in range(ntimes):
+# 		star_mass = stars[i][2][j]
 # 		misalignment_angle_profile = stars[i][5][j]
 # 		mass_profile = stars[i][6][j]
-# 		print max(mass_profile), stars[i][3]
 # 		age = stars[i][7][j] / year
-# 		plt.plot(radii/1.5e13, mass_profile/ M_sun, label = str(age) + ' years')
-# 	plt.ylabel(r'$M_{enc}/M_\odot$')
-# 	plt.legend(loc='upper left')
-# 	plt.xlabel(r'Radius (AU)')
-# 	plt.savefig('star_'+str(stars[i][1])+'_mass_profile.png')
-
-# 	# for j in range(int(stars[i][0])):
-# 	# 	print j, str(ytcfg.getint("yt", "__topcomm_parallel_rank"))
-
-
-
-
-
-
+# 		ax1 = plt.subplot(211)
+# 		plt.ylabel(r'$ \mathrm{misalignment \/ angle \/}(^{\circ})$')
+# 		ax2 = plt.subplot(212, sharex = ax1)
+# 		plt.ylabel(r'$M_{enc}/M_\odot$')
+# 		ax1.plot(radii/1.5e13, 180.0 * misalignment_angle_profile / np.pi, label = r'$\mathrm{time\/=\/}'+str(round(age,1)) + ' \mathrm{\/years}$')
+# 		ax2.plot(radii/1.5e13, mass_profile/ M_sun, label = r'$\mathrm{star\/mass} ='+str(round(star_mass/M_sun,4)) + '\/M_\odot$')
+# 	ax2.legend(loc='upper left')
+# 	ax1.legend()
+# 	ax1.set_ylim((0.,180.))
+# 	plt.xlabel(r'$\mathrm{Radius \/ (AU)}$')
+# 	plt.savefig('test_star_'+str(stars[i][1])+'_misalignment_mass_profile.png')
+# plt.clf()
 
 
-#==============================================================================#
-"""
-The function CAN_OPENER finds, then opens the output files in the 
-supplied directory and outputs the parameterfile (pf) and all the data (dd)
+# # my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
+# # for i in range(0+my_rank,len(stars),num_procs):
+# # 	ntimes = int(stars[i][0])
+# # 	for j in range(ntimes):
+# # 		misalignment_angle_profile = stars[i][5][j]
+# # 		mass_profile = stars[i][6][j]
+# # 		print max(mass_profile), stars[i][3]
+# # 		age = stars[i][7][j] / year
+# # 		plt.plot(radii/1.5e13, mass_profile/ M_sun, label = str(age) + ' years')
+# # 	plt.ylabel(r'$M_{enc}/M_\odot$')
+# # 	plt.legend(loc='upper left')
+# # 	plt.xlabel(r'Radius (AU)')
+# # 	plt.savefig('star_'+str(stars[i][1])+'_mass_profile.png')
 
-This might be better done using yt's built in TimeSeriesData
-"""
-def CAN_OPENER(directory):
-	filelist = np.array([])
-	for file in os.listdir(directory):
-		if fnmatch.fnmatch(file, '*.orion') or fnmatch.fnmatch(file, '*.hdf5'):
-			filelist = np.append(filelist, file)
-	nfiles = int(len(filelist))
+# # 	# for j in range(int(stars[i][0])):
+# # 	# 	print j, str(ytcfg.getint("yt", "__topcomm_parallel_rank"))
+
+
+
+
+
+
+
+
+# #==============================================================================#
+# """
+# The function CAN_OPENER finds, then opens the output files in the 
+# supplied directory and outputs the parameterfile (pf) and all the data (dd)
+
+# This might be better done using yt's built in TimeSeriesData
+# """
+# def CAN_OPENER(directory):
+# 	filelist = np.array([])
+# 	for file in os.listdir(directory):
+# 		if fnmatch.fnmatch(file, '*.orion') or fnmatch.fnmatch(file, '*.hdf5'):
+# 			filelist = np.append(filelist, file)
+# 	nfiles = int(len(filelist))
 	
-	if nfiles == 0:
-		print "no files found, make sure they end with .orion or .hdf5 \
-		and are in the directory given"
+# 	if nfiles == 0:
+# 		print "no files found, make sure they end with .orion or .hdf5 \
+# 		and are in the directory given"
 
-	pfs = np.array([])
-	all_data = np.array([])
-	for i in xrange(nfiles):
-		pf = load(directory+filelist)
-		data = pf.h.all_data()
-		pfs = np.append(pfs,pf)
-		all_data = np.append(all_data,data)
-	return pfs, all_data
-#==============================================================================#
+# 	pfs = np.array([])
+# 	all_data = np.array([])
+# 	for i in xrange(nfiles):
+# 		pf = load(directory+filelist)
+# 		data = pf.h.all_data()
+# 		pfs = np.append(pfs,pf)
+# 		all_data = np.append(all_data,data)
+# 	return pfs, all_data
+# #==============================================================================#
 
 
 
