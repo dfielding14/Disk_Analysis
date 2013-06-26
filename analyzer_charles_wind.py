@@ -158,8 +158,8 @@ ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/
 nfiles = len(ts)
 
 nradii = 48
-min_radii = 35.
-max_radii = 200.
+min_radii = 32.
+max_radii = 400.
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
 my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
@@ -244,3 +244,7 @@ for i in range(0+my_rank,len(stars),num_procs):
 		star_ages[j] = stars[i][7][j] / year
 	filename='star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
 	np.savetxt(filename,np.c_[star_ages, star_masses, np.transpose(misalignment_angle_profiles),np.transpose(mass_profiles),radii/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years), column 1: masses(g), column 2-2+ntimes: misalignment profiles, column 3+ntimes - 3+2ntimes: mass profiles, column 4+2ntimes: radii(AU)') 
+
+
+
+

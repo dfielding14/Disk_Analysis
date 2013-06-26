@@ -158,8 +158,8 @@ ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/
 nfiles = len(ts)
 
 nradii = 48
-min_radii = 35.
-max_radii = 200.
+min_radii = 32.
+max_radii = 400.
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
 my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
