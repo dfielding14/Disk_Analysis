@@ -242,5 +242,5 @@ for i in range(0+my_rank,len(stars),num_procs):
 		misalignment_angle_profiles[j] = stars[i][5][j]
 		mass_profiles[j] = stars[i][6][j]
 		star_ages[j] = stars[i][7][j] / year
-	filename='star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
+	filename='star_'+str(stars[i][1])+'_misalignment_mass_profile_farout.txt'
 	np.savetxt(filename,np.c_[star_ages, star_masses, np.transpose(misalignment_angle_profiles),np.transpose(mass_profiles),radii/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years), column 1: masses(g), column 2-2+ntimes: misalignment profiles, column 3+ntimes - 3+2ntimes: mass profiles, column 4+2ntimes: radii(AU)') 
