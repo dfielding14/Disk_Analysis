@@ -158,7 +158,7 @@ ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/
 nfiles = len(ts)
 
 nradii = 48
-min_radii = 32.
+min_radii = 40.
 max_radii = 400.
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
