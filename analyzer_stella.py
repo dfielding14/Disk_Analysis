@@ -174,7 +174,7 @@ for sto, pf in ts.piter(storage = my_storage):
 	print 'working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
 	data = pf.h.all_data()
 	nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
-	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.05, 0., nstars, indices, masses, positions, L_star)
+	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.00, 0., nstars, indices, masses, positions, L_star)
 	angle_profiles = np.zeros((nstars,nradii))
 	mass_profiles  = np.zeros((nstars,nradii))
 	for i in xrange(int(nstars)):
