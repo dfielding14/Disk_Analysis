@@ -169,19 +169,6 @@ num_procs = 12 # make sure to change this when using different computers #
 t0=time.time()
 ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
 nfiles = len(ts)
-"""
-Making the array of radii to be used in the coming calculations. There is a built in check so that 
-the minumum radius is not smaller than the actual highest resolution of the data outputs
-"""
-nradii = 20
-min_radii = 40.
-max_radii = 400.
-for i in xrange(nfiles):
-	max_res = MAX_RESOLVER(ts[i])
-	if min_radii + 1.0 < max_res:
-		print 'the minimum radius you supplied was too small and was increased from ' + str(min_radii) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
-		min_radii = max_res+1.0
-radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
 my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 
@@ -191,6 +178,22 @@ if my_rank == 0:
 my_storage = {}
 for sto, pf in ts.piter(storage = my_storage):
 	print 'working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
+	##########################################################################
+	"""
+	Making the array of radii to be used in the coming calculations. There is a built in check so that 
+	the minumum radius is not smaller than the actual highest resolution of the data outputs
+	"""
+	nradii = 20
+	min_radii = 40.
+	max_radii = 400.
+	for i in xrange(nfiles):
+		max_res = MAX_RESOLVER(pf)
+		if min_radii + 1.0 < max_res:
+			print 'the minimum radius you supplied was too small and was increased from ' + str(min_radii) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
+			min_radii = max_res+1.0
+			max_radii = min_radii + 360.
+	radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
+	##########################################################################
 	data = pf.h.all_data()
 	nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
 	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.25, 0., nstars, indices, masses, positions, L_star)
@@ -202,8 +205,8 @@ for sto, pf in ts.piter(storage = my_storage):
 	# timing
 	time_processor_finished = time.time()
 	time_processor = time_processor_finished - t0
+	sto.result = (nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time)
 	print 'processor '+str(my_rank)+' is done and it took ' + str(time_processor) + 'seconds or '+ str(time_processor/60.) + 'minutes'
-	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
 t1=time.time()
 
 
