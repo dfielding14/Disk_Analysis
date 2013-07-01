@@ -206,13 +206,13 @@ for sto, pf in ts.piter(storage = my_storage):
 	time_processor_finished = time.time()
 	time_processor = time_processor_finished - t0
 	sto.result = (nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time)
-	print 'processor '+str(my_rank)+' is done and it took ' + str(time_processor) + 'seconds or '+ str(time_processor/60.) + 'minutes'
+	print 'processor '+str(my_rank)+' is done and it took ' + str(time_processor) + ' seconds or '+ str(time_processor/60.) + ' minutes'
 t1=time.time()
 
 
 if my_rank == 0:
 	print 'the time it took to gather and clean all stars, and hunt their disks was:',t1-t0, 'seconds'
-	print my_storage[0]
+	print my_storage[-1]
 
 max_nstar = 0
 uniq_indices = np.array([])
@@ -230,6 +230,7 @@ t2 = time.time()
 stars = {}	
 for i in xrange(len(uniq_indices)):
 	ntimes=0
+	nradii = 20
 	matches1 = np.array([])
 	matches2 = np.array([])
 	for j in xrange(nfiles):
