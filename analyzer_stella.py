@@ -156,7 +156,7 @@ Making the array of radii to be used in the coming calculations. There is a buil
 the minumum radius is not smaller than the actual highest resolution of the data outputs
 """
 nradii = 10
-min_radii = 35.
+min_radii = 5.
 max_radii = 300.
 for i in xrange(nfiles):
 	max_res = MAX_RESOLVER(ts[i])
