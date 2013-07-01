@@ -145,8 +145,8 @@ num_procs = comm.size
 t0=time.time()
 
 #ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
 #ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
 nfiles = len(ts)
 
@@ -248,8 +248,8 @@ for i in range(0+my_rank,len(stars),num_procs):
 		mass_profiles[j] = stars[i][6][j]
 		star_ages[j] = stars[i][7][j] / year
 	#filename='stella_04_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
-	filename='stella_05_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
-	#filename='stella_08_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
+	#filename='stella_05_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
+	filename='stella_08_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
 	#filename='stella_13_star_'+str(stars[i][1])+'_misalignment_mass_profile.txt'
 	np.savetxt(filename,np.c_[star_ages, star_masses, np.transpose(misalignment_angle_profiles),np.transpose(mass_profiles),radii/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years), column 1: masses(g), column 2-2+ntimes: misalignment profiles, column 3+ntimes - 3+2ntimes: mass profiles, column 4+2ntimes: radii(AU)') 
 
