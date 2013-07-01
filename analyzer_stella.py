@@ -113,60 +113,61 @@ def DISK_HUNTER(pf, position, L_star, radii):
 	return angle_profile, mass_profile
 #==============================================================================#
 """
-The function CAN_OPENER finds, then opens the output files in the 
-supplied directory and outputs the parameterfile (pf) and all the data (dd)
+MAX_RESOLVER finds the maximum spatial resolution of the given parameter files
 
-This might be better done using yt's built in TimeSeriesData
+It returns the max resolution in AU
 """
-def CAN_OPENER(directory):
-	filelist = np.array([])
-	for file in os.listdir(loc):
-		if fnmatch.fnmatch(file, '*.orion') or fnmatch.fnmatch(file, '*.hdf5'):
-			filelist = np.append(filelist, file)
-	nfiles = int(len(filelist))
-	
-	if nfiles == 0:
-		print "no files found, make sure they end with .orion or .hdf5 \
-		and are in the directory given"
-
-	pfs = np.array([])
-	all_data = np.array([])
-	for i in xrange(nfiles):
-		pf = load(directory+filelist)
-		data = pf.h.all_data()
-		pfs = np.append(pfs,pf)
-		all_data = np.append(all_data,data)
-	return pfs, all_data
+def MAX_RESOLVER(pf):
+	length = abs(pf.domain_right_edge[0] - pf.domain_left_edge[0])
+	coursest_ncells = pf.domain_dimensions[0]
+	max_refinement = 0.
+	for i in xrange(len(pf.h.grids)):
+		if pf.h.grids[i].Level > max_refinement:
+			max_refinement = pf.h.grids[i].Level
+	Highest_Resolution = length / coursest_ncells / 2.**max_refinement # in cm
+	return Highest_Resolution/1.5e13 # in AU
 #==============================================================================#
 
 from yt.pmods import *
 import glob
 import fnmatch
 import matplotlib.pyplot as plt
+from mpi4py import MPI
 day        = 8.64e4                         # seconds
 year       = 365.2425 * day                 # seconds
 M_sun 	   = 1.9891e33        				# gm
 
-##########################################################################
-#num_procs = 3 # make sure to change this when using different computers # ~*~*~TEST~*~*~
-num_procs = 12 # make sure to change this when using different computers #
-##########################################################################
+comm = MPI.COMM_WORLD
+my_rank = comm.Get_rank()
+print my_rank
+num_procs = comm.size
 
 t0=time.time()
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/plt*") #charles w/ wind
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind_test/pltm*") #charles w/ wind test
+
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
 nfiles = len(ts)
 
-nradii = 25
+
+"""
+Making the array of radii to be used in the coming calculations. There is a built in check so that 
+the minumum radius is not smaller than the actual highest resolution of the data outputs
+"""
+nradii = 10
 min_radii = 35.
-max_radii = 200.
+max_radii = 300.
+for i in xrange(nfiles):
+	max_res = MAX_RESOLVER(ts[i])
+	if min_radii + 1.0 < max_res:
+		print 'the minimum radius you supplied was too small and was increased from ' + str(min_radii) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
+		min_radii = max_res+1.0
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
-my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 
 if my_rank == 0:
 	print 'the number of files in the time series is ' + str(nfiles)
-
 
 my_storage = {}
 for sto, pf in ts.piter(storage = my_storage):
@@ -179,8 +180,12 @@ for sto, pf in ts.piter(storage = my_storage):
 	for i in xrange(int(nstars)):
 		print "I am processor "+str( my_rank )+" and I am working on " + str(i+1)+' out of '+str(nstars)
 		angle_profiles[i], mass_profiles[i] = DISK_HUNTER(pf,positions[i], L_star[i], radii)
-	print 'processor '+str(my_rank)+' is done'
-	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
+	# timing
+	time_processor_finished = time.time()
+	time_processor = time_processor_finished - t0
+	#storage of results
+	sto.result = (nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time)
+	print 'processor '+str(my_rank)+' is done and it took ' + str(time_processor) + ' seconds = '+ str(time_processor/60.) + ' minutes'
 t1=time.time()
 
 
