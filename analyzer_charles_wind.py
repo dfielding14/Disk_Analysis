@@ -138,6 +138,21 @@ def CAN_OPENER(directory):
 		all_data = np.append(all_data,data)
 	return pfs, all_data
 #==============================================================================#
+"""
+MAX_RESOLVER finds the maximum spatial resolution of the given parameter files
+
+It returns the max resolution in AU
+"""
+def MAX_RESOLVER(pf):
+	length = abs(pf.domain_right_edge[0] - pf.domain_left_edge[0])
+	coursest_ncells = pf.domain_dimensions[0]
+	max_refinement = 0.
+	for i in xrange(len(pf.h.grids)):
+		if pf.h.grids[i].Level > max_refinement:
+			max_refinement = pf.h.grids[i].Level
+	Highest_Resolution = length / coursest_ncells / 2.**max_refinement # in cm
+	return Highest_Resolution/1.5e13 # in AU
+#==============================================================================#
 
 from yt.pmods import *
 import glob
@@ -148,18 +163,24 @@ year       = 365.2425 * day                 # seconds
 M_sun 	   = 1.9891e33        				# gm
 
 ##########################################################################
-#num_procs = 3 # make sure to change this when using different computers # ~*~*~TEST~*~*~
 num_procs = 12 # make sure to change this when using different computers #
 ##########################################################################
 
 t0=time.time()
 ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles w/ wind
-#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind_test/pltm*") #charles w/ wind test
 nfiles = len(ts)
-
-nradii = 48
+"""
+Making the array of radii to be used in the coming calculations. There is a built in check so that 
+the minumum radius is not smaller than the actual highest resolution of the data outputs
+"""
+nradii = 20
 min_radii = 40.
 max_radii = 400.
+for i in xrange(nfiles):
+	max_res = MAX_RESOLVER(ts[i])
+	if min_radii + 1.0 < max_res:
+		print 'the minimum radius you supplied was too small and was increased from ' + str(min_radii) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
+		min_radii = max_res+1.0
 radii = np.logspace(np.log10(min_radii*1.5e13), np.log10(max_radii*1.5e13),nradii)
 
 my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
@@ -167,25 +188,28 @@ my_rank = ytcfg.getint("yt", "__topcomm_parallel_rank")
 if my_rank == 0:
 	print 'the number of files in the time series is ' + str(nfiles)
 
-
 my_storage = {}
 for sto, pf in ts.piter(storage = my_storage):
 	print 'working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
 	data = pf.h.all_data()
 	nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
-	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.05, 0., nstars, indices, masses, positions, L_star)
+	nstars, indices, masses, positions, L_star = STAR_CLEANER(0.25, 0., nstars, indices, masses, positions, L_star)
 	angle_profiles = np.zeros((nstars,nradii))
 	mass_profiles  = np.zeros((nstars,nradii))
 	for i in xrange(int(nstars)):
 		print "I am processor "+str( my_rank )+" and I am working on " + str(i+1)+' out of '+str(nstars)
 		angle_profiles[i], mass_profiles[i] = DISK_HUNTER(pf,positions[i], L_star[i], radii)
-	print 'processor '+str(my_rank)+' is done'
+	# timing
+	time_processor_finished = time.time()
+	time_processor = time_processor_finished - t0
+	print 'processor '+str(my_rank)+' is done and it took ' + str(time_processor) + 'seconds or '+ str(time_processor/60.) + 'minutes'
 	sto.result = nstars, indices, masses, positions, L_star, angle_profiles, mass_profiles, pf.current_time
 t1=time.time()
 
 
 if my_rank == 0:
 	print 'the time it took to gather and clean all stars, and hunt their disks was:',t1-t0, 'seconds'
+	print my_storage[0]
 
 max_nstar = 0
 uniq_indices = np.array([])
