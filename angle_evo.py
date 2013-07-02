@@ -111,7 +111,15 @@ Here I am using the built in time series function to open all the
 parameter files and load then into an array: ts
 """
 t0=time.time()
-ts = TimeSeriesData.from_filenames("../data/stella/*.orion")
+#ts = TimeSeriesData.from_filenames("../data/stella/*.orion") #Local test
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/andrew/data.*.hdf5") #myers data
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") #charles wind
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltmnw*") #charles no wind
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
+#ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
+
 nfiles = len(ts)
 
 """
