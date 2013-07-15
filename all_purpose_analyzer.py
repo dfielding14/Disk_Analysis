@@ -147,11 +147,11 @@ num_procs = comm.size
 
 def radiusizer(ts, min_rad, max_rad, nrad):	
 	nfiles = len(ts)
-	# for i in xrange(nfiles):
-	# 	max_res = MAX_RESOLVER(ts[i])
-	# 	if min_rad + 1.0 < max_res:
-	# 		print 'the minimum radius you supplied was too small and was increased from ' + str(min_rad) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
-	# 		min_rad = max_res+1.0
+	for i in xrange(nfiles):
+		max_res = MAX_RESOLVER(ts[i])
+		if min_rad + 1.0 < max_res:
+			print 'the minimum radius you supplied was too small and was increased from ' + str(min_rad) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
+			min_rad = max_res+1.0
 	radii = np.logspace(np.log10(min_rad*1.5e13), np.log10(max_rad*1.5e13),nrad)
 	return radii, nrad
 
@@ -294,12 +294,14 @@ def work_horse(ts, radii, nradii, fn_prefix):
 # work_horse(ts, radii, nradii, 'stella_13_star_')
 
 
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") # charles wind
-radii , nradii = radiusizer(ts, 40., 500., 20)
-work_horse(ts, radii, nradii, 'charles_wind_star')
+# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") # charles wind
+# radii , nradii = radiusizer(ts, 40., 500., 20)
+# work_horse(ts, radii, nradii, 'charles_wind_star')
 
-ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltm*") # charles wind
-radii , nradii = radiusizer(ts, 40., 500., 20)
-work_horse(ts, radii, nradii, 'charles_no_wind_star')
+# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltm*") # charles wind
+# radii , nradii = radiusizer(ts, 40., 500., 20)
+# work_horse(ts, radii, nradii, 'charles_no_wind_star')
 
-
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/andrew/*.hdf5")
+radii , nradii = radiusizer(ts, 4., 300., 20)
+work_horse(ts, radii, nradii, 'andrew_star_')
