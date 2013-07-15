@@ -22,5 +22,5 @@
 #SBATCH --mail-user=dfielding@berkeley.edu
 
 ## Run Command
-mpirun -np 12 python analyzer_stella.py --parallel
+mpirun -np 12 python all_purpose_analyzer.py --parallel
 
