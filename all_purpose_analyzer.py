@@ -171,7 +171,7 @@ def work_horse(ts, radii, nradii, fn_prefix):
 		print 'working on', pf.parameter_filename, 'which is at time:', pf.current_time/year
 		data = pf.h.all_data()
 		nstars, indices, masses, positions, L_star = STAR_GATHERER(pf,data)
-		nstars, indices, masses, positions, L_star = STAR_CLEANER(0.01, nstars, indices, masses, positions, L_star)
+		nstars, indices, masses, positions, L_star = STAR_CLEANER(0.05, nstars, indices, masses, positions, L_star)
 		angle_profiles = np.zeros((nstars,nradii))
 		L_shell_vecs = np.zeros((nstars, nradii,3))
 		L_spheres= np.zeros((nstars,nradii,3))
