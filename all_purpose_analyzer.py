@@ -145,7 +145,8 @@ my_rank = comm.Get_rank()
 print my_rank
 num_procs = comm.size
 
-def radiusizer(ts, min_rad, max_rad, nrad):
+def radiusizer(ts, min_rad, max_rad, nrad):	
+	nfiles = len(ts)
 	for i in xrange(nfiles):
 		max_res = MAX_RESOLVER(ts[i])
 		if min_rad + 1.0 < max_res:
