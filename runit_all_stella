@@ -9,8 +9,8 @@
 #SBATCH --qos=small
 #
 # Processors:
-#SBATCH --nodes=3
-#SBATCH --ntasks-per-node=4
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=3
 #
 # Wall Clock Time:
 #SBATCH --time=4:00:00
@@ -22,5 +22,5 @@
 #SBATCH --mail-user=dfielding@berkeley.edu
 
 ## Run Command
-mpirun -np 12 python all_purpose_analyzer.py --parallel
+mpirun -np 3 python all_purpose_analyzer.py --parallel
 
