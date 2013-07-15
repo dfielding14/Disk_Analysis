@@ -254,27 +254,25 @@ def work_horse(ts, radii, nradii, fn_prefix):
 		np.savetxt(filename,np.c_[age, mass_hist, L_star_hist, angle_profile_hist, L_shell_for_saving, L_sphere_for_saving, M_shell_hist, M_sphere_hist, radii_time/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years) | column 1: masses(g) | column 2,3,4:L_star x,y,z |  angle profile hist |  L_shell_vec |  L_sphere_hist | M_shell_hist | M_sphere_hist | radii') 
 	t3 = time.time()
 
-if my_rank < 3:
-	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
-	radii , nradii = radiusizer(ts, 5., 300., 32)
-	work_horse(ts, radii, nradii, 'stella_04_star_')
+# if my_rank < 3:
+# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
+# 	radii , nradii = radiusizer(ts, 5., 300., 32)
+# 	work_horse(ts, radii, nradii, 'stella_04_star_')
 
-if my_rank < 6 and my_rank > 2:
-	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
-	radii , nradii = radiusizer(ts, 5., 300., 32)
-	work_horse(ts, radii, nradii, 'stella_05_star_')
+# if my_rank < 6 and my_rank > 2:
+# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
+# 	radii , nradii = radiusizer(ts, 5., 300., 32)
+# 	work_horse(ts, radii, nradii, 'stella_05_star_')
 
-if my_rank < 9 and my_rank > 5:
-	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
-	radii , nradii = radiusizer(ts, 5., 300., 32)
-	work_horse(ts, radii, nradii, 'stella_08_star_')
+# if my_rank < 9 and my_rank > 5:
+# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
+# 	radii , nradii = radiusizer(ts, 5., 300., 32)
+# 	work_horse(ts, radii, nradii, 'stella_08_star_')
 
-if my_rank < 12 and my_rank > 8:
-	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
-	radii , nradii = radiusizer(ts, 5., 300., 32)
-	work_horse(ts, radii, nradii, 'stella_13_star_')
-
-
+# if my_rank < 12 and my_rank > 8:
+# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
+# 	radii , nradii = radiusizer(ts, 5., 300., 32)
+# 	work_horse(ts, radii, nradii, 'stella_13_star_')
 
 
 
@@ -283,13 +281,21 @@ if my_rank < 12 and my_rank > 8:
 
 
 
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
+radii , nradii = radiusizer(ts, 5., 300., 16)
+work_horse(ts, radii, nradii, 'stella_04_star_')
 
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
+radii , nradii = radiusizer(ts, 5., 300., 16)
+work_horse(ts, radii, nradii, 'stella_05_star_')
 
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
+radii , nradii = radiusizer(ts, 5., 300., 16)
+work_horse(ts, radii, nradii, 'stella_08_star_')
 
-
-
-
-
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
+radii , nradii = radiusizer(ts, 5., 300., 16)
+work_horse(ts, radii, nradii, 'stella_13_star_')
 
 
 
