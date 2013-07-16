@@ -147,11 +147,11 @@ num_procs = comm.size
 
 def radiusizer(ts, min_rad, max_rad, nrad):	
 	nfiles = len(ts)
-	for i in xrange(nfiles):
-		max_res = MAX_RESOLVER(ts[i])
-		if min_rad + 1.0 < max_res:
-			print 'the minimum radius you supplied was too small and was increased from ' + str(min_rad) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
-			min_rad = max_res+1.0
+	# for i in xrange(nfiles):
+	# 	max_res = MAX_RESOLVER(ts[i])
+	# 	if min_rad + 1.0 < max_res:
+	# 		print 'the minimum radius you supplied was too small and was increased from ' + str(min_rad) + 'AU to '+ str(max_res+1.0) + 'AU, which is 1 AU more than the highest res.'
+	# 		min_rad = max_res+1.0
 	radii = np.logspace(np.log10(min_rad*1.5e13), np.log10(max_rad*1.5e13),nrad)
 	return radii, nrad
 
@@ -254,40 +254,6 @@ def work_horse(ts, radii, nradii, fn_prefix):
 				L_sphere_for_saving[j,3*i+2] = L_sphere_hist[j,i,2]
 		np.savetxt(filename,np.c_[age, mass_hist, L_star_hist, angle_profile_hist, L_shell_for_saving, L_sphere_for_saving, M_shell_hist, M_sphere_hist, radii_time/1.5e13], header = 'disk star misalignment analysis of myers data. column 0: age(years) | column 1: masses(g) | column 2,3,4:L_star x,y,z |  angle profile hist |  L_shell_vec |  L_sphere_hist | M_shell_hist | M_sphere_hist | radii') 
 	t3 = time.time()
-
-# if my_rank < 3:
-# 	print "hi from ", my_rank
-# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
-# 	radii , nradii = radiusizer(ts, 5., 300., 32)
-# 	work_horse(ts, radii, nradii, 'stella_04_star_')
-# elif my_rank < 6 and my_rank > 2:
-# 	print "hi from ", my_rank
-# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
-# 	radii , nradii = radiusizer(ts, 5., 300., 32)
-# 	work_horse(ts, radii, nradii, 'stella_05_star_')
-# elif my_rank < 9 and my_rank > 5:
-# 	print "hi from ", my_rank
-# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
-# 	radii , nradii = radiusizer(ts, 5., 300., 32)
-# 	work_horse(ts, radii, nradii, 'stella_08_star_')
-# elif my_rank < 12 and my_rank > 8:
-# 	print "hi from ", my_rank
-# 	ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
-# 	radii , nradii = radiusizer(ts, 5., 300., 32)
-# 	work_horse(ts, radii, nradii, 'stella_13_star_')
-
-
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2704*") #stella 1
-# radii , nradii = radiusizer(ts, 5., 300., 16)
-# work_horse(ts, radii, nradii, 'stella_04_star_')
-
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2705*") #stella 2
-# radii , nradii = radiusizer(ts, 5., 300., 16)
-# work_horse(ts, radii, nradii, 'stella_05_star_')
-
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2708*") #stella 3
-# radii , nradii = radiusizer(ts, 5., 300., 16)
-# work_horse(ts, radii, nradii, 'stella_08_star_')
 
 
 ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltm*") # charles no wind
