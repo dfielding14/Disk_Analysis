@@ -289,18 +289,18 @@ def work_horse(ts, radii, nradii, fn_prefix):
 # radii , nradii = radiusizer(ts, 5., 300., 16)
 # work_horse(ts, radii, nradii, 'stella_08_star_')
 
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
-# radii , nradii = radiusizer(ts, 5., 300., 16)
-# work_horse(ts, radii, nradii, 'stella_13_star_')
 
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/stella/pltrt2713*") #stella 4
+radii , nradii = radiusizer(ts, 5., 300., 16)
+work_horse(ts, radii, nradii, 'stella_13_star_')
 
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") # charles wind
-# radii , nradii = radiusizer(ts, 40., 500., 20)
-# work_horse(ts, radii, nradii, 'charles_wind_star')
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/wind/pltm*") # charles wind
+radii , nradii = radiusizer(ts, 40., 500., 20)
+work_horse(ts, radii, nradii, 'charles_wind_star')
 
-# ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltm*") # charles wind
-# radii , nradii = radiusizer(ts, 40., 500., 20)
-# work_horse(ts, radii, nradii, 'charles_no_wind_star')
+ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/charles/charles/nowind/pltm*") # charles wind
+radii , nradii = radiusizer(ts, 40., 500., 20)
+work_horse(ts, radii, nradii, 'charles_no_wind_star')
 
 ts = TimeSeriesData.from_filenames("/clusterfs/henyey/dfielding/andrew/*.hdf5")
 radii , nradii = radiusizer(ts, 4., 300., 20)
