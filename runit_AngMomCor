@@ -1,0 +1,26 @@
+#!/bin/bash
+# Job name:
+#SBATCH --job-name=MM_HR_Shell_AM
+#
+# Partition
+#SBATCH --partition=henyey
+#
+# QoS:
+#SBATCH --qos=small
+#
+# Processors:
+#SBATCH --nodes=6
+#SBATCH --ntasks-per-node=4
+#
+# Wall Clock Time:
+#SBATCH --time=24:00:00
+#
+# Mail type:
+#SBATCH --mail-type=all
+#
+# Mail user:
+#SBATCH --mail-user=dfielding@berkeley.edu
+
+## Run Command
+mpirun -np 24 python AngMomCor.py --parallel
+
