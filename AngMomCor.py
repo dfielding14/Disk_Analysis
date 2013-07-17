@@ -207,7 +207,6 @@ num_procs = comm.size
 
 ts = TimeSeriesData.from_filenames('/clusterfs/henyey/dfielding/andrew/data*.hdf5')
 
-
 final_pf   = ts[-1]
 final_data = final_pf.h.all_data()
 final_masses = final_data['particle_mass']
@@ -233,14 +232,13 @@ for sto, pf in ts.piter(storage = SHELL_STORAGE):
 
 	mass = data['particle_mass'][index]
 	position = [data['particle_position_' + direction][index] for direction in ['x', 'y', 'z']]
-
 	CSM_L_SHELL = LENGTHS(pf,position,radii)
 	CSM_L_SHELL = np.append(0,CSM_L_SHELL)
-	sto.result = (CSM_L_SHELL,pf.current_time/year)
+	sto.result = (CSM_L_SHELL,pf.current_time/year, mass)
 
 fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1) for i in xrange(len(SHELL_STORAGE))])
 for i in range(len(SHELL_STORAGE)):
-	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+'column 0: L_shell ||| column 1: radii')
+	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+' column 0: L_shell ||| column 1: radii')
 
 
 
