@@ -238,7 +238,7 @@ for sto, pf in ts.piter(storage = SHELL_STORAGE):
 
 fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1) for i in xrange(len(SHELL_STORAGE))])
 for i in range(len(SHELL_STORAGE)):
-	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+' column 0: L_shell ||| column 1: radii')
+	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+'|<>|<>| column 0: L_shell | column 1: radii')
 
 
 
