@@ -37,7 +37,7 @@ def findzeta(zd, CSM_SPHERE_L):
 	ZETA = radii[izeta] - radii[izd] 
 	return ZETA
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>#
-def find_ksi(percent, CSM_L_SHELL,kd):
+def find_ksi(percent, CSM_L_SHELL,kd,nrad):
 	ikd = find_nearest_index(radii,kd)
 	KSIs = np.zeros(ikd)
 	for i in range(ikd):
@@ -74,7 +74,7 @@ def LENGTHS(pf, position, radii):
 	percents = np.linspace(0.05, 1, num=20)
 	for i in xrange(len(percents)):
 		percent = percents[i]
-		KSIs = find_ksi(percent, CSM_L_SHELL,200)
+		KSIs = find_ksi(percent, CSM_L_SHELL,200,nrad)
 		all_ksis[i] = KSIs
 		#print KSIs
 		print 'the average ksi when taken at', percent, 'percent is', np.mean(KSIs), 'with deviation of', np.std(KSIs)
@@ -215,7 +215,7 @@ i_max_mass = final_masses.argmax()
 MM_index  = final_data['particle_id'][i_max_mass]
 
 radii = np.logspace(np.log10(5.0), np.log10(350.), num=250)
-
+nrad = len(radii)
 SHELL_STORAGE = {}
 for sto, pf in ts.piter(storage = SHELL_STORAGE):
 	data = pf.h.all_data()
@@ -233,12 +233,15 @@ for sto, pf in ts.piter(storage = SHELL_STORAGE):
 	mass = data['particle_mass'][index]
 	position = [data['particle_position_' + direction][index] for direction in ['x', 'y', 'z']]
 	CSM_L_SHELL = LENGTHS(pf,position,radii)
-	CSM_L_SHELL = np.append(0,CSM_L_SHELL)
-	sto.result = (CSM_L_SHELL,pf.current_time/year, mass)
+	L_SHELL = np.zeros((nrad,3))
+	L_SHELL[0] = np.zeros(3)
+	for i in range(1,nrad):
+		L_SHELL[i]=CSM_L_SHELL[i-1]
+	sto.result = (L_SHELL,pf.current_time/year, mass)
 
-fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1) for i in xrange(len(SHELL_STORAGE))])
+fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1)+'.txt' for i in xrange(len(SHELL_STORAGE))])
 for i in range(len(SHELL_STORAGE)):
-	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+'|<>|<>| column 0: L_shell | column 1: radii')
+	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+'|<>|<>| column 0,1,2: L_shell x,y,z | column 3: radii')
 
 
 
