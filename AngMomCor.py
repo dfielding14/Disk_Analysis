@@ -201,23 +201,24 @@ day        = 8.64e4                         # seconds
 year       = 365.2425 * day                 # seconds
 M_sun 	   = 1.9891e33        				# gm
 
-comm 		= MPI.COMM_WORLD
-my_rank = comm.Get_rank()
-num_procs = comm.size
+comm 	   = MPI.COMM_WORLD
+my_rank    = comm.Get_rank()
+num_procs  = comm.size
 
 ts = TimeSeriesData.from_filenames('/clusterfs/henyey/dfielding/andrew/data*.hdf5')
 
-final_pf   = ts[-1]
-final_data = final_pf.h.all_data()
+final_pf   	 = ts[-1]
+final_data   = final_pf.h.all_data()
 final_masses = final_data['particle_mass']
-i_max_mass = final_masses.argmax()
+i_max_mass 	 = final_masses.argmax()
+
 # MM_index will be the index of the most massive star
 MM_index  = final_data['particle_id'][i_max_mass]
 
-radii = np.logspace(np.log10(5.0), np.log10(350.), num=250)
+radii = np.logspace(np.log10(5.0), np.log10(350.), num=3)
 nrad = len(radii)
-SHELL_STORAGE = {}
-for sto, pf in ts.piter(storage = SHELL_STORAGE):
+#SHELL_STORAGE = {}
+for pf in ts.piter():		#storage = SHELL_STORAGE):
 	data = pf.h.all_data()
 	indices = data['particle_id']
 	""" getting only the most massive star and if it hasn't formed yet move on """
@@ -237,11 +238,12 @@ for sto, pf in ts.piter(storage = SHELL_STORAGE):
 	L_SHELL[0] = np.zeros(3)
 	for i in range(1,nrad):
 		L_SHELL[i]=CSM_L_SHELL[i-1]
-	sto.result = (L_SHELL,pf.current_time/year, mass)
+	np.savetxt('MM_L_SHELL_HR_'+str(round(pf.current_time/year,3))+'.txt', np.c_[L_SHELL,radii], header= ' current time = '+str(pf.current_time) + ' current mass = '+ str(mass/M_sun))
+#	sto.result = (L_SHELL,pf.current_time/year, mass)
 
-fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1)+'.txt' for i in xrange(len(SHELL_STORAGE))])
-for i in range(len(SHELL_STORAGE)):
-	np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+'|<>|<>| column 0,1,2: L_shell x,y,z | column 3: radii')
+#fnlist = np.array(['MM_L_SHELL_HR_'+str(i+1)+'.txt' for i in xrange(len(SHELL_STORAGE))])
+#for i in range(len(SHELL_STORAGE)):
+	#np.savetxt(fnlist[i],np.c_[SHELL_STORAGE[i][0],radii], header = 'current time = '+str(SHELL_STORAGE[i][1])+' current mass = '+str(SHELL_STORAGE[i][2]/M_sun)+'|<>|<>| column 0,1,2: L_shell x,y,z | column 3: radii')
 
 
 
